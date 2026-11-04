@@ -21,7 +21,8 @@ import org.spiderflow.io.SpiderResponse;
 import org.spiderflow.listener.SpiderListener;
 import org.spiderflow.model.Grammer;
 import org.spiderflow.model.SpiderNode;
-import org.springframework.beans.factory.annotation.Value;
+import org.spiderflow.core.service.SystemParamService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -91,14 +92,8 @@ public class RequestExecutor implements ShapeExecutor,Grammerable, SpiderListene
 
 	public static final String BLOOM_FILTER_KEY = "_bloomfilter";
 
-	@Value("${spider.workspace}")
-	private String workspcace;
-
-	@Value("${spider.bloomfilter.capacity:5000000}")
-	private Integer capacity;
-
-	@Value("${spider.bloomfilter.error-rate:0.00001}")
-	private Double errorRate;
+	@Autowired
+	private SystemParamService systemParamService;
 
 	private static final Logger logger = LoggerFactory.getLogger(RequestExecutor.class);
 	
@@ -299,7 +294,7 @@ public class RequestExecutor implements ShapeExecutor,Grammerable, SpiderListene
                         //记录访问失败的日志
 						if(context.getFlowId() != null){ //测试环境
 							//TODO 需增加记录请求参数
-							File file = new File(workspcace, context.getFlowId() + File.separator + "logs" + File.separator + "access_error.log");
+							File file = new File(systemParamService.getString("spider.workspace"), context.getFlowId() + File.separator + "logs" + File.separator + "access_error.log");
 							try {
 								File directory = file.getParentFile();
 								if(!directory.exists()){
@@ -446,7 +441,7 @@ public class RequestExecutor implements ShapeExecutor,Grammerable, SpiderListene
 		if(filter == null){
 			Funnel<CharSequence> funnel = Funnels.stringFunnel(Charset.forName("UTF-8"));
 			String fileName = context.getFlowId() + File.separator + "url.bf";
-			File file = new File(workspcace,fileName);
+			File file = new File(systemParamService.getString("spider.workspace"),fileName);
 			if(file.exists()){
 				try(FileInputStream fis = new FileInputStream(file)){
 					filter = BloomFilter.readFrom(fis,funnel);
@@ -455,7 +450,7 @@ public class RequestExecutor implements ShapeExecutor,Grammerable, SpiderListene
 				}
 
 			}else{
-				filter = BloomFilter.create(funnel,capacity,errorRate);
+				filter = BloomFilter.create(funnel,systemParamService.getInteger("spider.bloomfilter.capacity", 5000000),systemParamService.getDouble("spider.bloomfilter.error-rate", 0.00001));
 			}
 			context.put(BLOOM_FILTER_KEY,filter);
 		}
@@ -466,7 +461,7 @@ public class RequestExecutor implements ShapeExecutor,Grammerable, SpiderListene
 	public void afterEnd(SpiderContext context) {
 		BloomFilter<String> filter = context.get(BLOOM_FILTER_KEY);
 		if(filter != null){
-			File file = new File(workspcace,context.getFlowId() + File.separator + "url.bf");
+			File file = new File(systemParamService.getString("spider.workspace"),context.getFlowId() + File.separator + "url.bf");
 			if(!file.getParentFile().exists()){
 				file.getParentFile().mkdirs();
 			}

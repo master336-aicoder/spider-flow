@@ -9,11 +9,11 @@ import org.spiderflow.core.job.SpiderJobContext;
 import org.spiderflow.core.model.SpiderFlow;
 import org.spiderflow.core.model.Task;
 import org.spiderflow.core.service.SpiderFlowService;
+import org.spiderflow.core.service.SystemParamService;
 import org.spiderflow.core.service.TaskService;
 import org.spiderflow.model.JsonBean;
 import org.spiderflow.model.SpiderOutput;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +34,9 @@ public class SpiderRestController {
 	
 	@Autowired
 	private Spider spider;
-	
-	@Value("${spider.workspace}")
-	private String workspace;
+
+	@Autowired
+	private SystemParamService systemParamService;
 
 	@Autowired
 	private SpiderJob spiderJob;
@@ -107,7 +107,7 @@ public class SpiderRestController {
 		}
 		List<SpiderOutput> outputs;
 		Integer maxId = spiderFlowService.getFlowMaxTaskId(id);
-		SpiderJobContext context = SpiderJobContext.create(workspace, id,maxId,true);
+		SpiderJobContext context = SpiderJobContext.create(systemParamService.getString("spider.workspace"), id,maxId,true);
 		try{
 			outputs = spider.run(flow,context, params);	
 		}catch(Exception e){

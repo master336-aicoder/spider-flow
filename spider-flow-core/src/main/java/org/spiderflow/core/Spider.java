@@ -12,6 +12,7 @@ import org.spiderflow.context.SpiderContextHolder;
 import org.spiderflow.core.executor.shape.LoopExecutor;
 import org.spiderflow.core.model.SpiderFlow;
 import org.spiderflow.core.service.FlowNoticeService;
+import org.spiderflow.core.service.SystemParamService;
 import org.spiderflow.core.utils.ExecutorsUtils;
 import org.spiderflow.core.utils.ExpressionUtils;
 import org.spiderflow.core.utils.SpiderFlowUtils;
@@ -44,15 +45,9 @@ public class Spider {
 	@Autowired(required = false)
 	private List<SpiderListener> listeners;
 
-	@Value("${spider.thread.max:64}")
-	private Integer totalThreads;
+	@Autowired
+	private SystemParamService systemParamService;
 
-	@Value("${spider.thread.default:8}")
-	private Integer defaultThreads;
-
-	@Value("${spider.detect.dead-cycle:5000}")
-	private Integer deadCycle;
-	
 	@Autowired
 	private FlowNoticeService flowNoticeService;
 
@@ -64,7 +59,7 @@ public class Spider {
 
 	@PostConstruct
 	private void init() {
-		executorInstance = new SpiderFlowThreadPoolExecutor(totalThreads);
+		executorInstance = new SpiderFlowThreadPoolExecutor(systemParamService.getInteger("spider.thread.max", 64));
 	}
 
 	public List<SpiderOutput> run(SpiderFlow spiderFlow, SpiderContext context, Map<String, Object> variables) {
@@ -94,7 +89,7 @@ public class Spider {
 		//执行根节点
 		executeRoot(root, context, new HashMap<>());
 		//当爬虫任务执行完毕时,判断是否超过预期
-		if (executeCount.get() > deadCycle) {
+		if (executeCount.get() > systemParamService.getInteger("spider.detect.dead-cycle", 5000)) {
 			logger.error("检测到可能出现死循环,测试终止");
 		} else {
 			logger.info("测试完毕！");
@@ -108,7 +103,7 @@ public class Spider {
 	 */
 	private void executeRoot(SpiderNode root, SpiderContext context, Map<String, Object> variables) {
 		//获取当前流程执行线程数
-		int nThreads = NumberUtils.toInt(root.getStringJsonValue(ShapeExecutor.THREAD_COUNT), defaultThreads);
+		int nThreads = NumberUtils.toInt(root.getStringJsonValue(ShapeExecutor.THREAD_COUNT), systemParamService.getInteger("spider.thread.default", 8));
 		String strategy = root.getStringJsonValue("submit-strategy");
 		ThreadSubmitStrategy submitStrategy;
 		//选择提交策略，这里一定要使用new,不能与其他实例共享
@@ -277,7 +272,7 @@ public class Spider {
 							try {
 								//死循环检测，当执行节点次数大于阈值时，结束本次测试
 								AtomicInteger executeCount = context.get(ATOMIC_DEAD_CYCLE);
-								if (executeCount != null && executeCount.incrementAndGet() > deadCycle) {
+								if (executeCount != null && executeCount.incrementAndGet() > systemParamService.getInteger("spider.detect.dead-cycle", 5000)) {
 									context.setRunning(false);
 									return;
 								}

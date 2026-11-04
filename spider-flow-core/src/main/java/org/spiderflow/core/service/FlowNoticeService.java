@@ -34,14 +34,8 @@ public class FlowNoticeService extends ServiceImpl<FlowNoticeMapper, FlowNotice>
 	private SpiderFlowMapper spiderFlowMapper;
 	@Autowired
 	private EmailUtils emailUtils;
-	@Value("${spider.notice.subject:spider-flow流程通知}")
-	private String subject;
-	@Value("${spider.notice.content.start}")
-	private String startContext;
-	@Value("${spider.notice.content.end}")
-	private String endContext;
-	@Value("${spider.notice.content.exception}")
-	private String exceptionContext;
+	@Autowired
+	private SystemParamService systemParamService;
 
 	@Override
 	public boolean saveOrUpdate(FlowNotice entity) {
@@ -64,23 +58,23 @@ public class FlowNoticeService extends ServiceImpl<FlowNoticeMapper, FlowNotice>
 		if (notice != null && !StringUtils.isEmpty(notice.getRecipients())
 				&& !StringUtils.isEmpty(notice.getNoticeWay())) {
 			String content = null;
-			String sendSubject = this.subject;
+			String sendSubject = systemParamService.getString("spider.notice.subject", "spider-flow流程通知");
 			switch (type) {
 			case startNotice:
 				if (notice.judgeStartNotice()) {
-					content = startContext;
+					content = systemParamService.getString("spider.notice.content.start", "");
 					sendSubject += " - 流程开始执行";
 				}
 				break;
 			case endNotice:
 				if (notice.judgeEndNotice()) {
-					content = endContext;
+					content = systemParamService.getString("spider.notice.content.end", "");
 					sendSubject += " - 流程执行完毕";
 				}
 				break;
 			case exceptionNotice:
 				if (notice.judgeExceptionNotice()) {
-					content = exceptionContext;
+					content = systemParamService.getString("spider.notice.content.exception", "");
 					sendSubject += " - 流程发生异常";
 				}
 				break;

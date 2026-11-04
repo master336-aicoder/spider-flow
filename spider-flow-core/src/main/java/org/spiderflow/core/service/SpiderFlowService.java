@@ -45,26 +45,37 @@ public class SpiderFlowService extends ServiceImpl<SpiderFlowMapper, SpiderFlow>
 	@Autowired
 	private FlowNoticeMapper flowNoticeMapper;
 
-	private static Logger logger = LoggerFactory.getLogger(SpiderFlowService.class);
+	@Autowired
+	private SystemParamService systemParamService;
 
-	@Value("${spider.workspace}")
-	private String workspace;
+
+	private static Logger logger = LoggerFactory.getLogger(SpiderFlowService.class);
 
 	//项目启动后自动查询需要执行的任务进行爬取
 	@PostConstruct
 	private void initJobs(){
 		//清空所有任务下次执行时间
 		sfMapper.resetNextExecuteTime();
-		//获取启用corn的任务
+		//按当前的 spider.job.enable 参数注册调度，关闭时不占用 Quartz 资源
+		refreshSchedules();
+	}
+
+	/**
+	 * 按当前 spider.job.enable 参数重建 Quartz 调度，供系统设置保存后立即生效
+	 */
+	public void refreshSchedules(){
 		List<SpiderFlow> spiderFlows = sfMapper.selectList(new QueryWrapper<SpiderFlow>().eq("enabled", "1"));
-		if(spiderFlows != null && !spiderFlows.isEmpty()){
-			for (SpiderFlow sf : spiderFlows) {
-				if(StringUtils.isNotEmpty(sf.getCron())){
-					Date nextExecuteTimt = spiderJobManager.addJob(sf);
-					if (nextExecuteTimt != null) {
-						sf.setNextExecuteTime(nextExecuteTimt);
-						sfMapper.updateById(sf);
-					}
+		if(spiderFlows == null){
+			return;
+		}
+		boolean jobEnable = systemParamService.getBoolean("spider.job.enable", true);
+		for (SpiderFlow sf : spiderFlows) {
+			spiderJobManager.remove(sf.getId());
+			if(jobEnable && StringUtils.isNotEmpty(sf.getCron())){
+				Date nextExecuteTime = spiderJobManager.addJob(sf);
+				if (nextExecuteTime != null) {
+					sf.setNextExecuteTime(nextExecuteTime);
+					sfMapper.updateById(sf);
 				}
 			}
 		}
@@ -73,6 +84,7 @@ public class SpiderFlowService extends ServiceImpl<SpiderFlowMapper, SpiderFlow>
 	public IPage<SpiderFlow> selectSpiderPage(Page<SpiderFlow> page, String name){
 		return sfMapper.selectSpiderPage(page,name);
 	}
+
 	
 	public int executeCountIncrement(String id, Date lastExecuteTime, Date nextExecuteTime){
 		if(nextExecuteTime == null){
@@ -122,7 +134,7 @@ public class SpiderFlowService extends ServiceImpl<SpiderFlowMapper, SpiderFlow>
 			sfMapper.insertSpiderFlow(id, spiderFlow.getName(), spiderFlow.getXml());
 			spiderFlow.setId(id);
 		}
-		File file = new File(workspace,spiderFlow.getId() + File.separator + "xmls" + File.separator + System.currentTimeMillis() + ".xml");
+		File file = new File(systemParamService.getString("spider.workspace"),spiderFlow.getId() + File.separator + "xmls" + File.separator + System.currentTimeMillis() + ".xml");
 		try {
 			FileUtils.write(file,spiderFlow.getXml(),"UTF-8");
 		} catch (IOException e) {
@@ -195,7 +207,7 @@ public class SpiderFlowService extends ServiceImpl<SpiderFlowMapper, SpiderFlow>
 	}
 
 	public List<Long> historyList(String id){
-		File directory = new File(workspace, id + File.separator + "xmls");
+		File directory = new File(systemParamService.getString("spider.workspace"), id + File.separator + "xmls");
 		if(directory.exists() && directory.isDirectory()){
 			File[] files = directory.listFiles((dir, name) -> name.endsWith(".xml"));
 			if(files != null && files.length > 0){
@@ -206,7 +218,7 @@ public class SpiderFlowService extends ServiceImpl<SpiderFlowMapper, SpiderFlow>
 	}
 
 	public String readHistory(String id,String timestamp){
-		File file = new File(workspace, id + File.separator + "xmls" + File.separator + timestamp + ".xml");
+		File file = new File(systemParamService.getString("spider.workspace"), id + File.separator + "xmls" + File.separator + timestamp + ".xml");
 		if(file.exists()){
 			try {
 				return FileUtils.readFileToString(file,"UTF-8");

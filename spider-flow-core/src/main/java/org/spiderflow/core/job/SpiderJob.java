@@ -11,6 +11,7 @@ import org.spiderflow.core.Spider;
 import org.spiderflow.core.model.SpiderFlow;
 import org.spiderflow.core.model.Task;
 import org.spiderflow.core.service.SpiderFlowService;
+import org.spiderflow.core.service.SystemParamService;
 import org.spiderflow.core.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,17 +41,14 @@ public class SpiderJob extends QuartzJobBean {
 
 	private static Map<Integer, SpiderContext> contextMap = new HashMap<>();
 
-	@Value("${spider.job.enable:true}")
-	private boolean spiderJobEnable;
-
-	@Value("${spider.workspace}")
-	private String workspace;
+	@Autowired
+	private SystemParamService systemParamService;
 
 	private static Logger logger = LoggerFactory.getLogger(SpiderJob.class);
 
 	@Override
 	protected void executeInternal(JobExecutionContext context) {
-		if (!spiderJobEnable) {
+		if (!systemParamService.getBoolean("spider.job.enable", true)) {
 			return;
 		}
 		JobDataMap dataMap = context.getMergedJobDataMap();
@@ -76,7 +74,7 @@ public class SpiderJob extends QuartzJobBean {
 		SpiderJobContext context = null;
 		Date now = new Date();
 		try {
-			context = SpiderJobContext.create(this.workspace, spiderFlow.getId(),task.getId(),false);
+			context = SpiderJobContext.create(systemParamService.getString("spider.workspace"), spiderFlow.getId(),task.getId(),false);
 			SpiderContextHolder.set(context);
 			contextMap.put(task.getId(), context);
 			logger.info("开始执行任务{}", spiderFlow.getName());

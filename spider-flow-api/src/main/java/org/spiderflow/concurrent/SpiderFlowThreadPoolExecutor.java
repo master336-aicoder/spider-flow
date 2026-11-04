@@ -32,6 +32,11 @@ public class SpiderFlowThreadPoolExecutor {
 	 */
 	private static final String THREAD_POOL_NAME_PREFIX = "spider-flow-";
 
+	/**
+	 * 全局单例，供运行期动态调整线程池上限
+	 */
+	private static volatile SpiderFlowThreadPoolExecutor instance;
+
 	public SpiderFlowThreadPoolExecutor(int maxThreads) {
 		super();
 		this.maxThreads = maxThreads;
@@ -40,6 +45,53 @@ public class SpiderFlowThreadPoolExecutor {
 			//重写线程名称
 			return new Thread(SPIDER_FLOW_THREAD_GROUP, runnable, THREAD_POOL_NAME_PREFIX + poolNumber.getAndIncrement());
 		});
+		instance = this;
+	}
+
+	public static SpiderFlowThreadPoolExecutor getInstance() {
+		return instance;
+	}
+
+	public int getMaxThreads() {
+		return maxThreads;
+	}
+
+	/**
+	 * 当前正在执行任务的线程数，供工作台展示线程池水位
+	 */
+	public int getActiveThreads() {
+		return executor.getActiveCount();
+	}
+
+	/**
+	 * 当前存活线程数
+	 */
+	public int getPoolThreads() {
+		return executor.getPoolSize();
+	}
+
+	/**
+	 * 排队等待执行的任务数
+	 */
+	public int getQueueSize() {
+		return executor.getQueue().size();
+	}
+
+	/**
+	 * 动态调整线程池上限（保存系统参数后立即生效）
+	 */
+	public void resize(int newMaxThreads) {
+		if (newMaxThreads <= 0 || newMaxThreads == maxThreads) {
+			return;
+		}
+		if (newMaxThreads > maxThreads) {
+			executor.setMaximumPoolSize(newMaxThreads);
+			executor.setCorePoolSize(newMaxThreads);
+		} else {
+			executor.setCorePoolSize(newMaxThreads);
+			executor.setMaximumPoolSize(newMaxThreads);
+		}
+		this.maxThreads = newMaxThreads;
 	}
 
 	public Future<?> submit(Runnable runnable){

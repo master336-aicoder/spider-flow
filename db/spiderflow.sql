@@ -76,3 +76,12 @@ CREATE TABLE `sp_flow_notice` (
   `end_notice` char(1) DEFAULT '0' COMMENT '流程结束通知:1:开启通知,0:关闭通知',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '爬虫任务通知表';
+-- 系统参数覆盖值表（系统设置页保存的参数，重启后保留）
+CREATE TABLE IF NOT EXISTS `sp_sys_config` (
+  `id` VARCHAR(50) NOT NULL,
+  `config_key` VARCHAR(100) NOT NULL,
+  `config_value` VARCHAR(500) DEFAULT NULL,
+  `update_date` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统参数表';
