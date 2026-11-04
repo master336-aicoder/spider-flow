@@ -149,6 +149,10 @@ public class SpiderNode {
 		return nextNodes;
 	}
 
+	public List<SpiderNode> getPrevNodes() {
+		return prevNodes;
+	}
+
 	public String getCondition(String fromNodeId) {
 		return condition.get(fromNodeId);
 	}
