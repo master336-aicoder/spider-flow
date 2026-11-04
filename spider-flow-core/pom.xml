@@ -17,5 +17,11 @@
 			<groupId>org.spiderflow</groupId>
 			<artifactId>spider-flow-api</artifactId>
 		</dependency>
+		<!-- JDK15+ 移除了内置 Nashorn，改用独立版本（包名为 org.openjdk.nashorn.*） -->
+		<dependency>
+			<groupId>org.openjdk.nashorn</groupId>
+			<artifactId>nashorn-core</artifactId>
+			<version>15.6</version>
+		</dependency>
 	</dependencies>
 </project>
