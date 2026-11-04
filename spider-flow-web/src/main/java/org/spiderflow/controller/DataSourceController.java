@@ -51,7 +51,7 @@ public class DataSourceController {
 		return dataSource;
 	}
 	
-	@RequestMapping("/remove")
+	@RequestMapping({"/remove","/delete"})
 	public void remove(String id){
 		DataSourceUtils.remove(id);
 		dataSourceService.removeById(id);

@@ -11,6 +11,10 @@
 	<url>https://gitee.com/jmxd/spider-flow/tree/master/spider-flow-web</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 前端源码目录（frontend-vue），构建产物打进 jar 的 static 根目录 -->
+		<frontend.dir>${project.basedir}/../frontend-vue</frontend.dir>
+		<npm.executable>npm</npm.executable>
+		<frontend.skip>false</frontend.skip>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -28,6 +32,70 @@
 					<mainClass>org.spiderflow.SpiderApplication</mainClass>
 				</configuration>
 			</plugin>
+			<!-- 前端源码构建：npm run build（跳过用 -Dfrontend.skip=true） -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>build-frontend</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<skip>${frontend.skip}</skip>
+							<executable>${npm.executable}</executable>
+							<workingDirectory>${frontend.dir}</workingDirectory>
+							<environmentVariables>
+								<!-- webpack4 使用 md4 摘要，Node17+ 的 OpenSSL3 需 legacy provider -->
+								<NODE_OPTIONS>--openssl-legacy-provider</NODE_OPTIONS>
+							</environmentVariables>
+							<arguments>
+								<argument>run</argument>
+								<argument>build</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-frontend-dist</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${frontend.dir}/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>windows-npm</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<!-- 本机 npm 为 npm.exe（无 npm.cmd），Windows 下需显式指定 -->
+				<npm.executable>npm.exe</npm.executable>
+			</properties>
+		</profile>
+	</profiles>
 </project>

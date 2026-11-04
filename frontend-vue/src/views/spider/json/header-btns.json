@@ -1,0 +1,212 @@
+[
+    {
+        "type": "ant",
+        "icon": "rollback",
+        "title": "返回列表",
+        "click": {
+            "name": "goPage",
+            "params": "/spider_list"
+        },
+        "tip": "返回"
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "ant",
+        "icon": "save",
+        "title": "保存（Ctrl+S）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "s"
+        ],
+        "click": {
+            "name": "saveAction"
+        },
+        "tip": "保存"
+    },
+    {
+        "type": "ant",
+        "icon": "play-circle",
+        "title": "测试（Ctrl+Q）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "q"
+        ],
+        "click": {
+            "name": "testAction"
+        },
+        "tip": "测试"
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "ant",
+        "icon": "undo",
+        "title": "撤销（Ctrl+Z）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "z"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "undo"
+        },
+        "tip": "撤销"
+    },
+    {
+        "type": "ant",
+        "icon": "redo",
+        "title": "反撤销（Ctrl+Y）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "y"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "redo"
+        },
+        "tip": "反撤销"
+    },
+    {
+        "type": "ant",
+        "icon": "history",
+        "title": "历史版本",
+        "click": {
+            "name": "getHistoryVersion"
+        },
+        "tip": "历史版本"
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "ant",
+        "icon": "select",
+        "title": "全选（Ctrl+A）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "a"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "selectAll"
+        },
+        "tip": "全选"
+    },
+    {
+        "type": "ant",
+        "icon": "scissor",
+        "title": "剪切（Ctrl+X）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "x"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "cut"
+        },
+        "tip": "剪切"
+    },
+    {
+        "type": "ant",
+        "icon": "copy",
+        "title": "复制（Ctrl+C）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "c"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "copy"
+        },
+        "tip": "复制"
+    },
+    {
+        "type": "ant",
+        "icon": "snippets",
+        "title": "粘贴（Ctrl+V）",
+        "exeFun": "",
+        "exeFunKey": [
+            "ctrl",
+            "v"
+        ],
+        "click": {
+            "name": "spiderFlowExecute",
+            "params": "paste"
+        },
+        "tip": "粘贴"
+    },
+    {
+        "type": "ant",
+        "icon": "delete",
+        "title": "删除（Delete）",
+        "exeFun": "",
+        "exeFunKey": [
+            "delete"
+        ],
+        "click": {
+            "name": "deleteSelectCells"
+        },
+        "tip": "删除节点"
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "ant",
+        "icon": "file-text",
+        "title": "XML编辑",
+        "click": {
+            "name": "showXMLPageHandle"
+        },
+        "tip": "XML编辑"
+    },
+    {
+        "type": "ant",
+        "icon": "printer",
+        "title": "打印XML",
+        "click": {
+            "name": "printXmlToConsole"
+        },
+        "tip": "打印XML"
+    },
+    {
+        "type": "divider"
+    },
+    {
+        "type": "ant",
+        "icon": "bug",
+        "title": "调试",
+        "click": {
+            "name": "debugAction"
+        },
+        "tip": "调试"
+    },
+    {
+        "type": "ant",
+        "icon": "step-forward",
+        "title": "下一步",
+        "click": {
+            "name": "resumeAction"
+        },
+        "tip": "下一步"
+    },
+    {
+        "type": "ant",
+        "icon": "stop",
+        "title": "停止",
+        "click": {
+            "name": "stopTestAction"
+        },
+        "tip": "停止"
+    }
+]
